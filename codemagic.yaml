@@ -1,0 +1,122 @@
+﻿# Codemagic CI/CD 配置文件
+# 用于在云端构建 iOS 和 Android 应用
+# 文档: https://docs.codemagic.io/yaml-basic-configuration/yaml-getting-started/
+
+workflows:
+  # ==================== Android 构建 ====================
+  android-build:
+    name: Android Build
+    environment:
+      flutter: stable
+      android_signing:
+        - suppcheck_keystore  # 需要在 Codemagic 中上传密钥库
+      groups:
+        - google_play_credentials  # Google Play 发布凭据（可选）
+    scripts:
+      - name: 获取 Flutter 依赖
+        script: flutter packages pub get
+      
+      - name: 构建 Android APK (调试版)
+        script: flutter build apk --debug
+        ignore_failure: true
+      
+      - name: 构建 Android AppBundle (发布版)
+        script: flutter build appbundle --release
+    artifacts:
+      - build/app/outputs/flutter-apk/*.apk
+      - build/app/outputs/bundle/release/*.aab
+    publishing:
+      email:
+        recipients:
+          - your-email@example.com  # 修改为实际邮箱
+        notify:
+          success: true
+          failure: true
+
+  # ==================== iOS 构建 ====================
+  ios-build:
+    name: iOS Build
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+      ios_signing:
+        distribution_type: app_store  # 或 ad_hoc / development
+        bundle_identifier: com.example.suppcheck  # 修改为实际 Bundle ID
+    scripts:
+      - name: 获取 Flutter 依赖
+        script: flutter packages pub get
+      
+      - name: 安装 CocoaPods
+        script: |
+          cd ios
+          pod install --repo-update
+      
+      - name: 构建 iOS (无签名)
+        script: flutter build ios --release --no-codesign
+        ignore_failure: false
+      
+      # 如果需要打包 IPA，取消下面注释
+      # - name: 构建 iOS IPA
+      #   script: flutter build ipa --release
+    artifacts:
+      - build/ios/iphoneos/*.app
+      # - build/ios/ipa/*.ipa
+    publishing:
+      email:
+        recipients:
+          - your-email@example.com  # 修改为实际邮箱
+        notify:
+          success: true
+          failure: true
+
+  # ==================== Web 构建 ====================
+  web-build:
+    name: Web Build
+    environment:
+      flutter: stable
+    scripts:
+      - name: 获取 Flutter 依赖
+        script: flutter packages pub get
+      
+      - name: 构建 Web 版本
+        script: flutter build web --release
+    artifacts:
+      - build/web/**
+    publishing:
+      # 可选：自动部署到 Firebase Hosting
+      # firebase:
+      #   firebase_token: $FIREBASE_TOKEN
+      #   ios_targets:
+      #     - ios: "default"
+      email:
+        recipients:
+          - your-email@example.com
+
+  # ==================== 全平台构建 ====================
+  all-platforms:
+    name: Build All Platforms
+    environment:
+      flutter: stable
+      xcode: latest
+    scripts:
+      - name: 获取依赖
+        script: flutter packages pub get
+      
+      - name: 构建 Android
+        script: flutter build apk --release
+      
+      - name: 安装 iOS Pods
+        script: |
+          cd ios
+          pod install --repo-update
+      
+      - name: 构建 iOS
+        script: flutter build ios --release --no-codesign
+      
+      - name: 构建 Web
+        script: flutter build web --release
+    artifacts:
+      - build/app/outputs/flutter-apk/*.apk
+      - build/ios/iphoneos/*.app
+      - build/web/**

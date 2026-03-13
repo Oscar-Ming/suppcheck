@@ -1,0 +1,72 @@
+name: suppcheck
+description: 补剂摄入记录应用 - 防漏服、防过量
+
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # 本地数据库
+  sqflite: ^2.3.0
+  path_provider: ^2.1.1
+  path: ^1.8.3
+  
+  # 本地通知提醒
+  flutter_local_notifications: ^16.3.0
+  timezone: ^0.9.2
+  
+  # 轻量存储（设置）
+  shared_preferences: ^2.2.2
+  
+  # 日期格式化
+  intl: ^0.18.1
+  
+  # 日历组件
+  table_calendar: ^3.0.9
+  
+  # 图表统计
+  fl_chart: ^0.66.0
+  
+  # 状态管理
+  provider: ^6.1.1
+  
+  # 权限管理
+  permission_handler: ^11.1.0
+  
+  # 分享功能
+  share_plus: ^7.2.1
+  
+  # Cupertino 图标
+  cupertino_icons: ^1.0.6
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.1
+
+flutter:
+  uses-material-design: true
+  
+  # 自定义字体（苹果风格）- 暂时注释，字体文件需自行添加
+  # fonts:
+  #   - family: SF Pro
+  #     fonts:
+  #       - asset: assets/fonts/SF-Pro-Text-Regular.otf
+  #         weight: 400
+  #       - asset: assets/fonts/SF-Pro-Text-Medium.otf
+  #         weight: 500
+  #       - asset: assets/fonts/SF-Pro-Text-Semibold.otf
+  #         weight: 600
+  #       - asset: assets/fonts/SF-Pro-Text-Bold.otf
+  #         weight: 700
+  
+  # 应用图标
+  # assets:
+  #   - assets/icons/
+  #   - assets/sounds/
