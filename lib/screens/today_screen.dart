@@ -38,13 +38,13 @@ class _TodayScreenState extends State<TodayScreen>
   @override
   void initState() {
     super.initState();
-    
+
     // 页面淡入动画
     _fadeController = AnimationController(
-      duration: const Duration(milliseconds: 600),
+      duration: const Duration(milliseconds: 280),
       vsync: this,
     );
-    
+
     _fadeAnimation = CurvedAnimation(
       parent: _fadeController,
       curve: Curves.easeOut,
@@ -52,21 +52,21 @@ class _TodayScreenState extends State<TodayScreen>
 
     // FAB动画
     _fabController = AnimationController(
-      duration: const Duration(milliseconds: 400),
+      duration: const Duration(milliseconds: 240),
       vsync: this,
     );
 
     _fabScaleAnimation = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(
         parent: _fabController,
-        curve: Curves.elasticOut,
+        curve: Curves.easeOutCubic,
       ),
     );
 
-    _fabRotateAnimation = Tween<double>(begin: -0.5, end: 0).animate(
+    _fabRotateAnimation = Tween<double>(begin: 0, end: 0).animate(
       CurvedAnimation(
         parent: _fabController,
-        curve: Curves.easeOutBack,
+        curve: Curves.easeOutCubic,
       ),
     );
 
@@ -109,7 +109,7 @@ class _TodayScreenState extends State<TodayScreen>
                   // 顶部标题栏
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding: const EdgeInsets.all(20),
+                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 18),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -131,16 +131,17 @@ class _TodayScreenState extends State<TodayScreen>
                                   duration: const Duration(milliseconds: 200),
                                   padding: const EdgeInsets.all(8),
                                   decoration: BoxDecoration(
-                                    color: AppColors.gray50,
-                                    borderRadius: BorderRadius.circular(AppRadius.md),
+                                    color: AppColors.white,
+                                    borderRadius:
+                                        BorderRadius.circular(AppRadius.md),
                                   ),
                                   child: const Icon(
-                                      CupertinoIcons.settings,
-                                      color: AppColors.textSecondary,
-                                      size: 20,
-                                    ),
+                                    CupertinoIcons.settings,
+                                    color: AppColors.textSecondary,
+                                    size: 20,
                                   ),
                                 ),
+                              ),
                             ],
                           ),
                           const SizedBox(height: 8),
@@ -148,7 +149,7 @@ class _TodayScreenState extends State<TodayScreen>
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              const Text('今日补剂', style: AppTextStyles.largeTitle),
+                              const Text('今天', style: AppTextStyles.largeTitle),
                               if (supplements.isNotEmpty)
                                 _buildProgressIndicator(provider),
                             ],
@@ -190,8 +191,10 @@ class _TodayScreenState extends State<TodayScreen>
                             final supplement = supplements[index];
                             return SupplementCard(
                               supplement: supplement,
-                              takenCount: provider.getTodayTakenCount(supplement.id!),
-                              onTake: () => _showTakeDialog(context, supplement),
+                              takenCount:
+                                  provider.getTodayTakenCount(supplement.id!),
+                              onTake: () =>
+                                  _showTakeDialog(context, supplement),
                               index: index,
                             );
                           },
@@ -224,7 +227,8 @@ class _TodayScreenState extends State<TodayScreen>
                               ),
                               decoration: BoxDecoration(
                                 color: AppColors.gray50,
-                                borderRadius: BorderRadius.circular(AppRadius.round),
+                                borderRadius:
+                                    BorderRadius.circular(AppRadius.round),
                               ),
                               child: Text(
                                 '${provider.getTodayAllLogs().length} 条',
@@ -241,24 +245,24 @@ class _TodayScreenState extends State<TodayScreen>
                     // 今日记录
                     SliverToBoxAdapter(
                       child: TodayRecordsList(
-                          onUndo: (log) async {
-                            final supplement = supplements.firstWhere(
-                              (s) => s.id == log.supplementId,
-                              orElse: () => Supplement(
-                                name: '',
-                                dosage: '',
-                                form: '',
-                                frequency: '',
-                                timing: [],
-                                maxDaily: 1,
-                              ),
-                            );
-                            if (supplement.id != null) {
-                              await provider.undoIntake(supplement, log);
-                            }
-                          },
-                        ),
+                        onUndo: (log) async {
+                          final supplement = supplements.firstWhere(
+                            (s) => s.id == log.supplementId,
+                            orElse: () => Supplement(
+                              name: '',
+                              dosage: '',
+                              form: '',
+                              frequency: '',
+                              timing: [],
+                              maxDaily: 1,
+                            ),
+                          );
+                          if (supplement.id != null) {
+                            await provider.undoIntake(supplement, log);
+                          }
+                        },
                       ),
+                    ),
                   ],
 
                   // 底部间距
@@ -285,13 +289,13 @@ class _TodayScreenState extends State<TodayScreen>
           ),
         );
       },
-      child: FloatingActionButton.extended(
+      child: FloatingActionButton(
         onPressed: () => _navigateToAddSupplement(context),
-        icon: const Icon(CupertinoIcons.add),
-        label: const Text('添加补剂'),
+        tooltip: '添加补剂',
+        child: const Icon(CupertinoIcons.add, size: 25),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
-        elevation: 2,
+        elevation: 0,
       ),
     );
   }
@@ -308,9 +312,8 @@ class _TodayScreenState extends State<TodayScreen>
       curve: Curves.easeOutCubic,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
-        color: AppColors.gray50,
+        color: AppColors.primary.withOpacity(0.1),
         borderRadius: BorderRadius.circular(AppRadius.round),
-        border: Border.all(color: AppColors.border),
       ),
       child: AnimatedSwitcher(
         duration: const Duration(milliseconds: 200),
@@ -318,7 +321,7 @@ class _TodayScreenState extends State<TodayScreen>
           '$completed/$total',
           key: ValueKey(completed),
           style: AppTextStyles.footnote.copyWith(
-            color: AppColors.textSecondary,
+            color: AppColors.primary,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -328,7 +331,7 @@ class _TodayScreenState extends State<TodayScreen>
 
   Widget _buildStreakBadge(int days) {
     final isHot = days >= 7;
-    
+
     return AnimatedContainer(
       duration: const Duration(milliseconds: 400),
       curve: Curves.easeOutCubic,
@@ -341,11 +344,6 @@ class _TodayScreenState extends State<TodayScreen>
             ? const Color(0xFFFF6B6B).withOpacity(0.1)
             : AppColors.success.withOpacity(0.1),
         borderRadius: BorderRadius.circular(AppRadius.round),
-        border: Border.all(
-          color: isHot
-              ? const Color(0xFFFF6B6B).withOpacity(0.2)
-              : AppColors.success.withOpacity(0.2),
-        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -464,7 +462,8 @@ class _TodayScreenState extends State<TodayScreen>
         child: Container(
           decoration: const BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xxl)),
+            borderRadius:
+                BorderRadius.vertical(top: Radius.circular(AppRadius.xxl)),
           ),
           child: SafeArea(
             child: Padding(
@@ -482,13 +481,13 @@ class _TodayScreenState extends State<TodayScreen>
                     ),
                   ),
                   const SizedBox(height: 24),
-                  
+
                   Text(
                     '记录服用',
                     style: AppTextStyles.title2,
                   ),
                   const SizedBox(height: 24),
-                  
+
                   // 补剂信息卡片
                   AnimatedContainer(
                     duration: const Duration(milliseconds: 300),
@@ -511,9 +510,9 @@ class _TodayScreenState extends State<TodayScreen>
                       ],
                     ),
                   ),
-                  
+
                   const SizedBox(height: 32),
-                  
+
                   Row(
                     children: [
                       Expanded(

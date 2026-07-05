@@ -7,7 +7,6 @@ import 'statistics_screen.dart';
 import 'supplement_list_screen.dart';
 import 'reminders_screen.dart';
 
-/// 主页面 - 带底部导航
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -15,217 +14,85 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
+class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
-  late List<AnimationController> _animationControllers;
-  late List<Animation<double>> _scaleAnimations;
-  late List<Animation<double>> _fadeAnimations;
 
-  final List<Widget> _screens = [
-    const TodayScreen(),
-    const CalendarScreen(),
-    const StatisticsScreen(),
-    const SupplementListScreen(),
-    const RemindersScreen(),
+  static const _screens = <Widget>[
+    TodayScreen(),
+    CalendarScreen(),
+    StatisticsScreen(),
+    SupplementListScreen(),
+    RemindersScreen(),
   ];
 
-  final List<_NavItem> _navItems = const [
+  static const _items = <_NavItem>[
+    _NavItem(CupertinoIcons.checkmark_circle,
+        CupertinoIcons.checkmark_circle_fill, '今日'),
     _NavItem(
-      icon: CupertinoIcons.checkmark_circle,
-      activeIcon: CupertinoIcons.checkmark_circle_fill,
-      label: '今日',
-    ),
-    _NavItem(
-      icon: CupertinoIcons.calendar,
-      activeIcon: CupertinoIcons.calendar_circle_fill,
-      label: '日历',
-    ),
-    _NavItem(
-      icon: CupertinoIcons.chart_bar,
-      activeIcon: CupertinoIcons.chart_bar_fill,
-      label: '统计',
-    ),
-    _NavItem(
-      icon: CupertinoIcons.list_bullet,
-      activeIcon: CupertinoIcons.list_dash,
-      label: '补剂',
-    ),
-    _NavItem(
-      icon: CupertinoIcons.bell,
-      activeIcon: CupertinoIcons.bell_fill,
-      label: '提醒',
-    ),
+        CupertinoIcons.calendar, CupertinoIcons.calendar_circle_fill, '日历'),
+    _NavItem(CupertinoIcons.chart_bar, CupertinoIcons.chart_bar_fill, '统计'),
+    _NavItem(CupertinoIcons.capsule, CupertinoIcons.capsule, '补剂'),
+    _NavItem(CupertinoIcons.bell, CupertinoIcons.bell_fill, '提醒'),
   ];
-
-  @override
-  void initState() {
-    super.initState();
-    _animationControllers = List.generate(
-      _navItems.length,
-      (index) => AnimationController(
-        duration: const Duration(milliseconds: 200),
-        vsync: this,
-      ),
-    );
-
-    _scaleAnimations = _animationControllers.map((controller) {
-      return Tween<double>(begin: 1, end: 0.9).animate(
-        CurvedAnimation(
-          parent: controller,
-          curve: Curves.easeOutCubic,
-        ),
-      );
-    }).toList();
-
-    _fadeAnimations = _animationControllers.map((controller) {
-      return Tween<double>(begin: 1, end: 0.7).animate(
-        CurvedAnimation(
-          parent: controller,
-          curve: Curves.easeOut,
-        ),
-      );
-    }).toList();
-  }
-
-  @override
-  void dispose() {
-    for (final controller in _animationControllers) {
-      controller.dispose();
-    }
-    super.dispose();
-  }
-
-  void _onTabChanged(int index) {
-    if (_currentIndex == index) return;
-    
-    // 播放当前选中项的动画
-    _animationControllers[index].forward().then((_) {
-      _animationControllers[index].reverse();
-    });
-    
-    setState(() {
-      _currentIndex = index;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 300),
-        transitionBuilder: (child, animation) {
-          return FadeTransition(
-            opacity: animation,
-            child: child,
-          );
-        },
-        child: IndexedStack(
-          key: ValueKey<int>(_currentIndex),
-          index: _currentIndex,
-          children: _screens,
+      body: IndexedStack(index: _currentIndex, children: _screens),
+      bottomNavigationBar: Container(
+        decoration: const BoxDecoration(
+          color: Color(0xF7FFFFFF),
+          border: Border(top: BorderSide(color: AppColors.border, width: 0.5)),
         ),
-      ),
-      bottomNavigationBar: _buildBottomNav(),
-    );
-  }
-
-  Widget _buildBottomNav() {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeOutCubic,
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        border: Border(
-          top: BorderSide(
-            color: AppColors.border,
-            width: 0.5,
-          ),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.gray200.withOpacity(0.2),
-            blurRadius: 8,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: List.generate(_navItems.length, (index) {
-              return _buildNavItem(index);
-            }),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNavItem(int index) {
-    final item = _navItems[index];
-    final isSelected = _currentIndex == index;
-    
-    return GestureDetector(
-      onTap: () => _onTabChanged(index),
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedBuilder(
-        animation: _animationControllers[index],
-        builder: (context, child) {
-          final scale = isSelected
-              ? 1 - (_animationControllers[index].value * 0.1)
-              : 1;
-          
-          return Transform.scale(
-            scale: scale.toDouble(),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.easeOutCubic,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: isSelected ? AppColors.gray50 : Colors.transparent,
-                borderRadius: BorderRadius.circular(AppRadius.md),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 200),
-                    transitionBuilder: (child, animation) {
-                      return ScaleTransition(
-                        scale: animation,
-                        child: FadeTransition(
-                          opacity: animation,
-                          child: child,
-                        ),
-                      );
-                    },
-                    child: Icon(
-                      isSelected ? item.activeIcon : item.icon,
-                      key: ValueKey(isSelected),
-                      color: isSelected ? AppColors.primary : AppColors.textTertiary,
-                      size: 24,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  AnimatedDefaultTextStyle(
-                    duration: const Duration(milliseconds: 200),
-                    curve: Curves.easeOut,
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                      color: isSelected ? AppColors.primary : AppColors.textTertiary,
-                      letterSpacing: 0.2,
-                    ),
-                    child: Text(item.label),
-                  ),
-                ],
-              ),
+        child: SafeArea(
+          top: false,
+          child: SizedBox(
+            height: 58,
+            child: Row(
+              children: List.generate(_items.length, _buildItem),
             ),
-          );
-        },
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildItem(int index) {
+    final item = _items[index];
+    final selected = index == _currentIndex;
+    return Expanded(
+      child: Semantics(
+        selected: selected,
+        button: true,
+        label: item.label,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => setState(() => _currentIndex = index),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 160),
+                child: Icon(
+                  selected ? item.activeIcon : item.icon,
+                  key: ValueKey(selected),
+                  size: 23,
+                  color: selected ? AppColors.primary : AppColors.textTertiary,
+                ),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                item.label,
+                style: TextStyle(
+                  fontSize: 10,
+                  height: 1,
+                  fontWeight: FontWeight.w500,
+                  color: selected ? AppColors.primary : AppColors.textTertiary,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -236,9 +103,5 @@ class _NavItem {
   final IconData activeIcon;
   final String label;
 
-  const _NavItem({
-    required this.icon,
-    required this.activeIcon,
-    required this.label,
-  });
+  const _NavItem(this.icon, this.activeIcon, this.label);
 }

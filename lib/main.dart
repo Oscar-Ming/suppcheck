@@ -12,10 +12,10 @@ import 'utils/animations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // 初始化日期格式化
   await initializeDateFormatting();
-  
+
   // 设置状态栏样式 - 白底黑字高级质感
   if (!kIsWeb) {
     SystemChrome.setSystemUIOverlayStyle(
@@ -23,12 +23,12 @@ void main() async {
         statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.dark,
         statusBarBrightness: Brightness.light,
-        systemNavigationBarColor: Colors.white,
+        systemNavigationBarColor: AppColors.background,
         systemNavigationBarIconBrightness: Brightness.dark,
       ),
     );
   }
-  
+
   // 初始化服务（带错误处理）
   try {
     await DatabaseService.instance.initialize();
@@ -36,14 +36,14 @@ void main() async {
   } catch (e) {
     debugPrint('❌ Database error: $e');
   }
-  
+
   try {
     await NotificationService.instance.initialize();
     debugPrint('✅ Notification initialized');
   } catch (e) {
     debugPrint('❌ Notification error: $e');
   }
-  
+
   runApp(const SuppCheckApp());
 }
 
@@ -70,7 +70,7 @@ class SuppCheckApp extends StatelessWidget {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
-      
+
       // ========== 颜色方案 ==========
       colorScheme: const ColorScheme.light(
         primary: AppColors.primary,
@@ -83,13 +83,15 @@ class SuppCheckApp extends StatelessWidget {
         onBackground: AppColors.textPrimary,
         onError: AppColors.white,
       ),
-      
+
       // ========== 页面背景 ==========
       scaffoldBackgroundColor: AppColors.background,
-      
+
       // ========== 字体 ==========
       fontFamily: kIsWeb ? null : '.SF Pro Text',
-      
+      splashFactory: NoSplash.splashFactory,
+      highlightColor: Colors.transparent,
+
       // ========== 卡片样式 ==========
       cardTheme: CardTheme(
         elevation: 0,
@@ -100,7 +102,7 @@ class SuppCheckApp extends StatelessWidget {
         margin: EdgeInsets.zero,
         shadowColor: Colors.transparent,
       ),
-      
+
       // ========== AppBar 样式 ==========
       appBarTheme: const AppBarTheme(
         elevation: 0,
@@ -111,7 +113,7 @@ class SuppCheckApp extends StatelessWidget {
         titleTextStyle: AppTextStyles.headline,
         toolbarHeight: 56,
       ),
-      
+
       // ========== 底部导航栏样式 ==========
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: AppColors.white,
@@ -132,7 +134,7 @@ class SuppCheckApp extends StatelessWidget {
         showSelectedLabels: true,
         showUnselectedLabels: true,
       ),
-      
+
       // ========== 按钮样式 ==========
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -148,7 +150,7 @@ class SuppCheckApp extends StatelessWidget {
           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         ),
       ),
-      
+
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: AppColors.primary,
@@ -160,16 +162,16 @@ class SuppCheckApp extends StatelessWidget {
           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         ),
       ),
-      
+
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.textPrimary,
-          backgroundColor: AppColors.white,
+          backgroundColor: AppColors.inputBackground,
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.md),
           ),
-          side: const BorderSide(color: AppColors.border, width: 1),
+          side: BorderSide.none,
           textStyle: AppTextStyles.body.copyWith(
             fontWeight: FontWeight.w600,
           ),
@@ -177,13 +179,13 @@ class SuppCheckApp extends StatelessWidget {
           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         ),
       ),
-      
+
       // ========== 输入框样式 ==========
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.inputBackground,
         contentPadding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.lg, 
+          horizontal: AppSpacing.lg,
           vertical: AppSpacing.md,
         ),
         border: OutlineInputBorder(
@@ -196,7 +198,8 @@ class SuppCheckApp extends StatelessWidget {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),
-          borderSide: const BorderSide(color: AppColors.borderFocus, width: 1.5),
+          borderSide:
+              const BorderSide(color: AppColors.borderFocus, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),
@@ -209,7 +212,7 @@ class SuppCheckApp extends StatelessWidget {
           color: AppColors.textSecondary,
         ),
       ),
-      
+
       // ========== 分隔线样式 ==========
       dividerTheme: const DividerThemeData(
         color: AppColors.border,
@@ -217,18 +220,18 @@ class SuppCheckApp extends StatelessWidget {
         space: 0,
         indent: AppSpacing.lg,
       ),
-      
+
       // ========== 列表样式 ==========
       listTileTheme: const ListTileThemeData(
         contentPadding: EdgeInsets.symmetric(
-          horizontal: AppSpacing.lg, 
+          horizontal: AppSpacing.lg,
           vertical: AppSpacing.xs,
         ),
         minLeadingWidth: 40,
         dense: false,
         visualDensity: VisualDensity.compact,
       ),
-      
+
       // ========== 复选框样式 ==========
       checkboxTheme: CheckboxThemeData(
         fillColor: MaterialStateProperty.resolveWith((states) {
@@ -242,7 +245,7 @@ class SuppCheckApp extends StatelessWidget {
         ),
         side: const BorderSide(color: AppColors.border, width: 1),
       ),
-      
+
       // ========== 单选按钮样式 ==========
       radioTheme: RadioThemeData(
         fillColor: MaterialStateProperty.resolveWith((states) {
@@ -252,7 +255,7 @@ class SuppCheckApp extends StatelessWidget {
           return AppColors.gray400;
         }),
       ),
-      
+
       // ========== 开关样式 ==========
       switchTheme: SwitchThemeData(
         thumbColor: MaterialStateProperty.resolveWith((states) {
@@ -269,7 +272,7 @@ class SuppCheckApp extends StatelessWidget {
         }),
         trackOutlineColor: MaterialStateProperty.all(Colors.transparent),
       ),
-      
+
       // ========== 滑块样式 ==========
       sliderTheme: SliderThemeData(
         activeTrackColor: AppColors.primary,
@@ -282,14 +285,14 @@ class SuppCheckApp extends StatelessWidget {
           elevation: 2,
         ),
       ),
-      
+
       // ========== 进度指示器样式 ==========
       progressIndicatorTheme: const ProgressIndicatorThemeData(
         color: AppColors.primary,
         linearTrackColor: AppColors.gray100,
         circularTrackColor: AppColors.gray100,
       ),
-      
+
       // ========== 对话框样式 ==========
       dialogTheme: DialogTheme(
         backgroundColor: AppColors.white,
@@ -300,7 +303,7 @@ class SuppCheckApp extends StatelessWidget {
         titleTextStyle: AppTextStyles.title2,
         contentTextStyle: AppTextStyles.body,
       ),
-      
+
       // ========== 底部Sheet样式 ==========
       bottomSheetTheme: const BottomSheetThemeData(
         backgroundColor: AppColors.white,
@@ -311,7 +314,7 @@ class SuppCheckApp extends StatelessWidget {
           ),
         ),
       ),
-      
+
       // ========== Chip样式 ==========
       chipTheme: ChipThemeData(
         backgroundColor: AppColors.gray50,
@@ -322,7 +325,7 @@ class SuppCheckApp extends StatelessWidget {
           color: AppColors.white,
         ),
         padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md, 
+          horizontal: AppSpacing.md,
           vertical: AppSpacing.xs,
         ),
         shape: RoundedRectangleBorder(
@@ -330,22 +333,20 @@ class SuppCheckApp extends StatelessWidget {
         ),
         side: BorderSide.none,
       ),
-      
+
       // ========== 悬浮按钮样式 ==========
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.white,
         elevation: 0,
         highlightElevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadius.lg),
-        ),
+        shape: const CircleBorder(),
         extendedPadding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.xl, 
+          horizontal: AppSpacing.xl,
           vertical: AppSpacing.md,
         ),
       ),
-      
+
       // ========== TabBar样式 ==========
       tabBarTheme: const TabBarTheme(
         labelColor: AppColors.primary,
@@ -361,7 +362,7 @@ class SuppCheckApp extends StatelessWidget {
         indicatorSize: TabBarIndicatorSize.label,
         dividerColor: Colors.transparent,
       ),
-      
+
       // ========== 滚动条样式 ==========
       scrollbarTheme: ScrollbarThemeData(
         thumbColor: MaterialStateProperty.all(AppColors.gray300),
@@ -370,7 +371,7 @@ class SuppCheckApp extends StatelessWidget {
         radius: const Radius.circular(2),
         minThumbLength: 40,
       ),
-      
+
       // ========== 页面转场动画 ==========
       pageTransitionsTheme: PageTransitionsTheme(
         builders: {
@@ -389,7 +390,7 @@ class SuppCheckApp extends StatelessWidget {
 /// 苹果风格的页面转场构建器（用于Android等平台）
 class _ApplePageTransitionBuilder extends PageTransitionsBuilder {
   const _ApplePageTransitionBuilder();
-  
+
   @override
   Widget buildTransitions<T>(
     PageRoute<T> route,
@@ -403,12 +404,12 @@ class _ApplePageTransitionBuilder extends PageTransitionsBuilder {
       curve: AppleCurves.standard,
       reverseCurve: AppleCurves.accelerate,
     );
-    
+
     final secondaryCurve = CurvedAnimation(
       parent: secondaryAnimation,
       curve: AppleCurves.standard,
     );
-    
+
     return SlideTransition(
       position: Tween<Offset>(
         begin: const Offset(0.25, 0),

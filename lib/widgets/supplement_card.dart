@@ -34,7 +34,7 @@ class _SupplementCardState extends State<SupplementCard>
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 450),
+      duration: const Duration(milliseconds: 280),
       vsync: this,
     );
 
@@ -43,24 +43,27 @@ class _SupplementCardState extends State<SupplementCard>
     _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: Interval(delay, (delay + 0.6).clamp(0.0, 1.0), curve: Curves.easeOutCubic),
+        curve: Interval(delay, (delay + 0.6).clamp(0.0, 1.0),
+            curve: Curves.easeOutCubic),
       ),
     );
 
     _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.1),  // 相对位移，更平滑
+      begin: const Offset(0, 0.025),
       end: Offset.zero,
     ).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: Interval(delay, (delay + 0.6).clamp(0.0, 1.0), curve: Curves.easeOutCubic),
+        curve: Interval(delay, (delay + 0.6).clamp(0.0, 1.0),
+            curve: Curves.easeOutCubic),
       ),
     );
 
-    _scaleAnimation = Tween<double>(begin: 0.97, end: 1).animate(
+    _scaleAnimation = Tween<double>(begin: 0.995, end: 1).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: Interval(delay, (delay + 0.6).clamp(0.0, 1.0), curve: Curves.easeOutCubic),
+        curve: Interval(delay, (delay + 0.6).clamp(0.0, 1.0),
+            curve: Curves.easeOutCubic),
       ),
     );
 
@@ -101,24 +104,19 @@ class _SupplementCardState extends State<SupplementCard>
           duration: const Duration(milliseconds: 150),
           curve: Curves.easeOutCubic,
           margin: const EdgeInsets.only(bottom: 12),
-          transform: Matrix4.identity()
-            ..scale(_isPressed ? 0.98 : 1.0),
+          transform: Matrix4.identity()..scale(_isPressed ? 0.992 : 1.0),
           decoration: BoxDecoration(
             color: AppColors.cardBackground,
             borderRadius: BorderRadius.circular(AppRadius.lg),
             border: Border.all(
-              color: isCompleted 
-                  ? AppColors.success.withOpacity(0.3)
-                  : AppColors.border,
-              width: isCompleted ? 1.5 : 1,
-            ),
+                color: AppColors.border.withOpacity(0.65), width: 0.5),
             boxShadow: _isPressed
                 ? []
                 : [
                     BoxShadow(
-                      color: AppColors.gray200.withOpacity(0.3),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
+                      color: Colors.black.withOpacity(0.035),
+                      blurRadius: 16,
+                      offset: const Offset(0, 5),
                     ),
                   ],
           ),
@@ -128,20 +126,21 @@ class _SupplementCardState extends State<SupplementCard>
               children: [
                 // 主内容区
                 Padding(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.fromLTRB(16, 15, 16, 14),
                   child: Row(
                     children: [
                       // 状态图标 - 带动画
                       AnimatedContainer(
                         duration: const Duration(milliseconds: 300),
                         curve: Curves.easeOutCubic,
-                        width: 52,
-                        height: 52,
+                        width: 48,
+                        height: 48,
                         decoration: BoxDecoration(
-                          color: isCompleted
-                              ? AppColors.success
-                              : widget.supplement.category.displayColor,
-                          borderRadius: BorderRadius.circular(AppRadius.md),
+                          color: (isCompleted
+                                  ? AppColors.success
+                                  : widget.supplement.category.displayColor)
+                              .withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(AppRadius.lg),
                         ),
                         child: AnimatedSwitcher(
                           duration: const Duration(milliseconds: 250),
@@ -159,12 +158,14 @@ class _SupplementCardState extends State<SupplementCard>
                                 ? CupertinoIcons.checkmark_alt
                                 : CupertinoIcons.capsule,
                             key: ValueKey(isCompleted),
-                            color: Colors.white,
-                            size: 26,
+                            color: isCompleted
+                                ? AppColors.success
+                                : widget.supplement.category.displayColor,
+                            size: 24,
                           ),
                         ),
                       ),
-                      const SizedBox(width: 16),
+                      const SizedBox(width: 14),
 
                       // 信息
                       Expanded(
@@ -190,14 +191,18 @@ class _SupplementCardState extends State<SupplementCard>
                                           vertical: 3,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: widget.supplement.category.displayColor
-                                              .withOpacity(0.08),
-                                          borderRadius: BorderRadius.circular(AppRadius.sm),
+                                          color: widget
+                                              .supplement.category.displayColor
+                                              .withOpacity(0.07),
+                                          borderRadius: BorderRadius.circular(
+                                              AppRadius.sm),
                                         ),
                                         child: Text(
-                                          widget.supplement.category.displayName,
+                                          widget
+                                              .supplement.category.displayName,
                                           style: AppTextStyles.caption.copyWith(
-                                            color: widget.supplement.category.displayColor,
+                                            color: widget.supplement.category
+                                                .displayColor,
                                             fontWeight: FontWeight.w600,
                                           ),
                                         ),
@@ -215,7 +220,8 @@ class _SupplementCardState extends State<SupplementCard>
                                     ),
                                     decoration: BoxDecoration(
                                       color: AppColors.success.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(AppRadius.round),
+                                      borderRadius: BorderRadius.circular(
+                                          AppRadius.round),
                                     ),
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
@@ -245,24 +251,29 @@ class _SupplementCardState extends State<SupplementCard>
                                   : '${widget.supplement.dosage} · ${widget.supplement.form}',
                               style: AppTextStyles.subhead,
                             ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 10),
 
                             // 进度条 - 带动画
                             Row(
                               children: [
                                 Expanded(
                                   child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(AppRadius.xs),
+                                    borderRadius:
+                                        BorderRadius.circular(AppRadius.xs),
                                     child: Container(
-                                      height: 6,
+                                      height: 4,
                                       decoration: BoxDecoration(
                                         color: AppColors.gray100,
-                                        borderRadius: BorderRadius.circular(AppRadius.xs),
+                                        borderRadius:
+                                            BorderRadius.circular(AppRadius.xs),
                                       ),
                                       child: TweenAnimationBuilder<double>(
-                                        duration: const Duration(milliseconds: 500),
+                                        duration:
+                                            const Duration(milliseconds: 500),
                                         curve: Curves.easeOutCubic,
-                                        tween: Tween<double>(begin: 0, end: progress.clamp(0, 1)),
+                                        tween: Tween<double>(
+                                            begin: 0,
+                                            end: progress.clamp(0, 1)),
                                         builder: (context, value, child) {
                                           return FractionallySizedBox(
                                             alignment: Alignment.centerLeft,
@@ -272,7 +283,9 @@ class _SupplementCardState extends State<SupplementCard>
                                                 color: isCompleted
                                                     ? AppColors.success
                                                     : AppColors.primary,
-                                                borderRadius: BorderRadius.circular(AppRadius.xs),
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                        AppRadius.xs),
                                               ),
                                             ),
                                           );
@@ -317,12 +330,11 @@ class _SupplementCardState extends State<SupplementCard>
                             width: 0.5,
                           ),
                         ),
-                        color: _isPressed
-                            ? AppColors.gray50
-                            : Colors.transparent,
+                        color:
+                            _isPressed ? AppColors.gray50 : Colors.transparent,
                       ),
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        padding: const EdgeInsets.symmetric(vertical: 11),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -394,17 +406,19 @@ class _SupplementListItemState extends State<SupplementListItem>
     _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: Interval(delay, (delay + 0.6).clamp(0.0, 1.0), curve: Curves.easeOutCubic),
+        curve: Interval(delay, (delay + 0.6).clamp(0.0, 1.0),
+            curve: Curves.easeOutCubic),
       ),
     );
 
     _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.1),  // 从下往上，与SupplementCard一致
+      begin: const Offset(0, 0.1), // 从下往上，与SupplementCard一致
       end: Offset.zero,
     ).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: Interval(delay, (delay + 0.6).clamp(0.0, 1.0), curve: Curves.easeOutCubic),
+        curve: Interval(delay, (delay + 0.6).clamp(0.0, 1.0),
+            curve: Curves.easeOutCubic),
       ),
     );
 
@@ -493,8 +507,7 @@ class _SupplementListItemState extends State<SupplementListItem>
             duration: const Duration(milliseconds: 150),
             curve: Curves.easeOutCubic,
             margin: const EdgeInsets.only(bottom: 12),
-            transform: Matrix4.identity()
-              ..scale(_isPressed ? 0.98 : 1.0),
+            transform: Matrix4.identity()..scale(_isPressed ? 0.98 : 1.0),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: AppColors.cardBackground,
@@ -523,7 +536,7 @@ class _SupplementListItemState extends State<SupplementListItem>
                   ),
                 ),
                 const SizedBox(width: 14),
-                
+
                 // 信息
                 Expanded(
                   child: Column(
@@ -570,7 +583,8 @@ class _SupplementListItemState extends State<SupplementListItem>
                               ),
                               decoration: BoxDecoration(
                                 color: AppColors.gray50,
-                                borderRadius: BorderRadius.circular(AppRadius.sm),
+                                borderRadius:
+                                    BorderRadius.circular(AppRadius.sm),
                               ),
                               child: Text(
                                 widget.supplement.timing.first,
@@ -584,7 +598,7 @@ class _SupplementListItemState extends State<SupplementListItem>
                     ],
                   ),
                 ),
-                
+
                 // 箭头
                 const Icon(
                   CupertinoIcons.chevron_right,

@@ -57,7 +57,7 @@ class AppConstants {
 /// ============================================================
 /// 高级质感白底黑字配色方案
 /// ============================================================
-/// 
+///
 /// 设计理念：
 /// - 以纯白色为基底，营造干净极简的视觉效果
 /// - 使用不同层级的灰色来创建层次感和深度
@@ -68,134 +68,134 @@ class AppColors {
   // ========== 主色调 ==========
   /// 纯黑 - 用于主要文字
   static const Color black = Color(0xFF000000);
-  
+
   /// 纯白 - 用于背景
   static const Color white = Color(0xFFFFFFFF);
-  
+
   // ========== 灰度层级 ==========
   /// 最深灰 - 主要文字
-  static const Color gray900 = Color(0xFF1A1A1A);
-  
+  static const Color gray900 = Color(0xFF1C1C1E);
+
   /// 深灰 - 次要文字
-  static const Color gray800 = Color(0xFF2D2D2D);
-  
+  static const Color gray800 = Color(0xFF2C2C2E);
+
   /// 中深灰
-  static const Color gray700 = Color(0xFF404040);
-  
+  static const Color gray700 = Color(0xFF3A3A3C);
+
   /// 中灰
-  static const Color gray600 = Color(0xFF525252);
-  
+  static const Color gray600 = Color(0xFF48484A);
+
   /// 中浅灰
-  static const Color gray500 = Color(0xFF737373);
-  
+  static const Color gray500 = Color(0xFF636366);
+
   /// 浅灰 - 辅助文字
-  static const Color gray400 = Color(0xFF999999);
-  
+  static const Color gray400 = Color(0xFF8E8E93);
+
   /// 更浅灰
-  static const Color gray300 = Color(0xFFB3B3B3);
-  
+  static const Color gray300 = Color(0xFFC7C7CC);
+
   /// 超浅灰
-  static const Color gray200 = Color(0xFFD9D9D9);
-  
+  static const Color gray200 = Color(0xFFD1D1D6);
+
   /// 极浅灰 - 分隔线
-  static const Color gray100 = Color(0xFFE6E6E6);
-  
+  static const Color gray100 = Color(0xFFE5E5EA);
+
   /// 最浅灰 - 背景
-  static const Color gray50 = Color(0xFFF5F5F5);
-  
+  static const Color gray50 = Color(0xFFF2F2F7);
+
   /// 微灰 - 悬浮背景
-  static const Color gray25 = Color(0xFFFAFAFA);
-  
+  static const Color gray25 = Color(0xFFF9F9FB);
+
   // ========== 品牌/强调色 ==========
   /// 主强调色 - 纯黑（极简风格）
-  static const Color primary = Color(0xFF000000);
-  
+  static const Color primary = Color(0xFF007AFF);
+
   /// 次要强调色 - 深灰
-  static const Color secondary = Color(0xFF333333);
-  
+  static const Color secondary = Color(0xFF5AC8FA);
+
   /// 成功色 - 柔和绿
-  static const Color success = Color(0xFF22C55E);
-  
+  static const Color success = Color(0xFF34C759);
+
   /// 警告色 - 琥珀色
-  static const Color warning = Color(0xFFF59E0B);
-  
+  static const Color warning = Color(0xFFFF9500);
+
   /// 危险色 - 柔和红
-  static const Color danger = Color(0xFFEF4444);
-  
+  static const Color danger = Color(0xFFFF3B30);
+
   /// 信息色 - 柔和蓝
-  static const Color info = Color(0xFF3B82F6);
-  
+  static const Color info = Color(0xFF007AFF);
+
   // ========== 背景色 ==========
   /// 页面背景 - 纯白
-  static const Color background = Color(0xFFFFFFFF);
-  
+  static const Color background = Color(0xFFF2F2F7);
+
   /// 卡片背景 - 纯白
   static const Color cardBackground = Color(0xFFFFFFFF);
-  
+
   /// 悬浮背景 - 极浅灰
-  static const Color hoverBackground = Color(0xFFF5F5F5);
-  
+  static const Color hoverBackground = Color(0xFFEFF0F4);
+
   /// 选中背景
-  static const Color selectedBackground = Color(0xFFEEEEEE);
-  
+  static const Color selectedBackground = Color(0xFFE5F2FF);
+
   /// 按压背景
-  static const Color pressedBackground = Color(0xFFE0E0E0);
-  
+  static const Color pressedBackground = Color(0xFFE5E5EA);
+
   /// 输入框背景
-  static const Color inputBackground = Color(0xFFF5F5F5);
-  
+  static const Color inputBackground = Color(0xFFFFFFFF);
+
   // ========== 文字色 ==========
   /// 主要文字
-  static const Color textPrimary = Color(0xFF1A1A1A);
-  
+  static const Color textPrimary = Color(0xFF1C1C1E);
+
   /// 次要文字
-  static const Color textSecondary = Color(0xFF737373);
-  
+  static const Color textSecondary = Color(0xFF636366);
+
   /// 辅助文字
-  static const Color textTertiary = Color(0xFF999999);
-  
+  static const Color textTertiary = Color(0xFF8E8E93);
+
   /// 禁用文字
   static const Color textDisabled = Color(0xFFB3B3B3);
-  
+
   /// 反色文字（用于深色背景）
   static const Color textInverse = Color(0xFFFFFFFF);
-  
+
   // ========== 边框色 ==========
   /// 主边框
-  static const Color border = Color(0xFFE6E6E6);
-  
+  static const Color border = Color(0xFFE5E5EA);
+
   /// 深边框
   static const Color borderStrong = Color(0xFFD1D1D1);
-  
+
   /// 浅边框
   static const Color borderLight = Color(0xFFF0F0F0);
-  
+
   /// 聚焦边框
-  static const Color borderFocus = Color(0xFF1A1A1A);
-  
+  static const Color borderFocus = Color(0xFF007AFF);
+
   // ========== 阴影色 ==========
   /// 轻阴影
   static Color shadowLight = Colors.black.withOpacity(0.04);
-  
+
   /// 中阴影
   static Color shadowMedium = Colors.black.withOpacity(0.08);
-  
+
   /// 重阴影
   static Color shadowHeavy = Colors.black.withOpacity(0.12);
-  
+
   // ========== 状态色 ==========
   /// 已完成/已服用
   static const Color taken = Color(0xFF22C55E);
-  
+
   /// 漏服
   static const Color missed = Color(0xFFEF4444);
-  
+
   /// 待处理/未服用
   static const Color pending = Color(0xFFF59E0B);
-  
+
   /// 进行中
   static const Color inProgress = Color(0xFF3B82F6);
-  
+
   // ========== 渐变预设 ==========
   /// 卡片渐变 - 微妙的高级感
   static const LinearGradient cardGradient = LinearGradient(
@@ -206,7 +206,7 @@ class AppColors {
       Color(0xFFFAFAFA),
     ],
   );
-  
+
   /// 主按钮渐变
   static const LinearGradient primaryGradient = LinearGradient(
     begin: Alignment.topCenter,
@@ -216,7 +216,7 @@ class AppColors {
       Color(0xFF000000),
     ],
   );
-  
+
   /// 完成状态渐变
   static const LinearGradient successGradient = LinearGradient(
     begin: Alignment.topLeft,
@@ -242,7 +242,7 @@ class AppTextStyles {
     letterSpacing: -0.5,
     height: 1.1,
   );
-  
+
   static const TextStyle displayMedium = TextStyle(
     fontSize: 36,
     fontWeight: FontWeight.w700,
@@ -250,7 +250,7 @@ class AppTextStyles {
     letterSpacing: -0.5,
     height: 1.2,
   );
-  
+
   static const TextStyle displaySmall = TextStyle(
     fontSize: 28,
     fontWeight: FontWeight.w700,
@@ -258,7 +258,7 @@ class AppTextStyles {
     letterSpacing: -0.3,
     height: 1.2,
   );
-  
+
   // ========== 标题型 ==========
   /// 页面大标题
   static const TextStyle largeTitle = TextStyle(
@@ -268,7 +268,7 @@ class AppTextStyles {
     letterSpacing: -0.4,
     height: 1.2,
   );
-  
+
   static const TextStyle title1 = TextStyle(
     fontSize: 28,
     fontWeight: FontWeight.w600,
@@ -276,7 +276,7 @@ class AppTextStyles {
     letterSpacing: -0.3,
     height: 1.2,
   );
-  
+
   static const TextStyle title2 = TextStyle(
     fontSize: 22,
     fontWeight: FontWeight.w600,
@@ -284,7 +284,7 @@ class AppTextStyles {
     letterSpacing: -0.2,
     height: 1.3,
   );
-  
+
   static const TextStyle title3 = TextStyle(
     fontSize: 20,
     fontWeight: FontWeight.w600,
@@ -292,7 +292,7 @@ class AppTextStyles {
     letterSpacing: -0.2,
     height: 1.3,
   );
-  
+
   static const TextStyle headline = TextStyle(
     fontSize: 17,
     fontWeight: FontWeight.w600,
@@ -300,7 +300,7 @@ class AppTextStyles {
     letterSpacing: -0.1,
     height: 1.4,
   );
-  
+
   // ========== 正文型 ==========
   static const TextStyle bodyLarge = TextStyle(
     fontSize: 17,
@@ -309,7 +309,7 @@ class AppTextStyles {
     letterSpacing: -0.1,
     height: 1.5,
   );
-  
+
   static const TextStyle body = TextStyle(
     fontSize: 16,
     fontWeight: FontWeight.w400,
@@ -317,7 +317,7 @@ class AppTextStyles {
     letterSpacing: 0,
     height: 1.5,
   );
-  
+
   static const TextStyle bodySmall = TextStyle(
     fontSize: 15,
     fontWeight: FontWeight.w400,
@@ -325,7 +325,7 @@ class AppTextStyles {
     letterSpacing: 0,
     height: 1.5,
   );
-  
+
   static const TextStyle callout = TextStyle(
     fontSize: 15,
     fontWeight: FontWeight.w400,
@@ -333,7 +333,7 @@ class AppTextStyles {
     letterSpacing: 0,
     height: 1.4,
   );
-  
+
   static const TextStyle subhead = TextStyle(
     fontSize: 14,
     fontWeight: FontWeight.w400,
@@ -341,7 +341,7 @@ class AppTextStyles {
     letterSpacing: 0,
     height: 1.4,
   );
-  
+
   static const TextStyle footnote = TextStyle(
     fontSize: 13,
     fontWeight: FontWeight.w400,
@@ -349,7 +349,7 @@ class AppTextStyles {
     letterSpacing: 0,
     height: 1.4,
   );
-  
+
   static const TextStyle caption = TextStyle(
     fontSize: 12,
     fontWeight: FontWeight.w400,
@@ -357,7 +357,7 @@ class AppTextStyles {
     letterSpacing: 0.1,
     height: 1.3,
   );
-  
+
   static const TextStyle caption2 = TextStyle(
     fontSize: 11,
     fontWeight: FontWeight.w400,
@@ -365,7 +365,7 @@ class AppTextStyles {
     letterSpacing: 0.1,
     height: 1.3,
   );
-  
+
   // ========== 特殊样式 ==========
   /// 标签文字
   static const TextStyle label = TextStyle(
@@ -375,7 +375,7 @@ class AppTextStyles {
     letterSpacing: 0.5,
     height: 1.2,
   );
-  
+
   /// 按钮文字
   static const TextStyle button = TextStyle(
     fontSize: 16,
@@ -384,7 +384,7 @@ class AppTextStyles {
     letterSpacing: 0.2,
     height: 1.25,
   );
-  
+
   /// 大按钮文字
   static const TextStyle buttonLarge = TextStyle(
     fontSize: 17,
@@ -393,7 +393,7 @@ class AppTextStyles {
     letterSpacing: 0.2,
     height: 1.25,
   );
-  
+
   /// 数字/统计文字
   static const TextStyle statistic = TextStyle(
     fontSize: 32,
@@ -442,63 +442,63 @@ class AppRadius {
 class AppShadows {
   /// 极轻阴影 - 用于卡片默认状态
   static BoxShadow get extraLight => BoxShadow(
-    color: Colors.black.withOpacity(0.03),
-    blurRadius: 8,
-    offset: const Offset(0, 2),
-    spreadRadius: 0,
-  );
-  
+        color: Colors.black.withOpacity(0.03),
+        blurRadius: 8,
+        offset: const Offset(0, 2),
+        spreadRadius: 0,
+      );
+
   /// 轻阴影
   static BoxShadow get light => BoxShadow(
-    color: Colors.black.withOpacity(0.04),
-    blurRadius: 12,
-    offset: const Offset(0, 4),
-    spreadRadius: 0,
-  );
-  
+        color: Colors.black.withOpacity(0.04),
+        blurRadius: 12,
+        offset: const Offset(0, 4),
+        spreadRadius: 0,
+      );
+
   /// 中阴影 - 用于悬浮卡片
   static BoxShadow get medium => BoxShadow(
-    color: Colors.black.withOpacity(0.06),
-    blurRadius: 16,
-    offset: const Offset(0, 6),
-    spreadRadius: -2,
-  );
-  
+        color: Colors.black.withOpacity(0.06),
+        blurRadius: 16,
+        offset: const Offset(0, 6),
+        spreadRadius: -2,
+      );
+
   /// 重阴影 - 用于模态框
   static BoxShadow get heavy => BoxShadow(
-    color: Colors.black.withOpacity(0.1),
-    blurRadius: 24,
-    offset: const Offset(0, 8),
-    spreadRadius: -4,
-  );
-  
+        color: Colors.black.withOpacity(0.1),
+        blurRadius: 24,
+        offset: const Offset(0, 8),
+        spreadRadius: -4,
+      );
+
   /// 按钮阴影
   static BoxShadow get button => BoxShadow(
-    color: Colors.black.withOpacity(0.08),
-    blurRadius: 12,
-    offset: const Offset(0, 4),
-    spreadRadius: -2,
-  );
-  
+        color: Colors.black.withOpacity(0.08),
+        blurRadius: 12,
+        offset: const Offset(0, 4),
+        spreadRadius: -2,
+      );
+
   /// 内阴影 - 用于输入框
   static List<BoxShadow> get inner => [
-    BoxShadow(
-      color: Colors.black.withOpacity(0.02),
-      blurRadius: 4,
-      offset: const Offset(0, 2),
-      spreadRadius: -1,
-    ),
-  ];
-  
+        BoxShadow(
+          color: Colors.black.withOpacity(0.02),
+          blurRadius: 4,
+          offset: const Offset(0, 2),
+          spreadRadius: -1,
+        ),
+      ];
+
   /// 卡片阴影组合
   static List<BoxShadow> get card => [
-    extraLight,
-  ];
-  
+        extraLight,
+      ];
+
   /// 悬浮卡片阴影组合
   static List<BoxShadow> get cardHover => [
-    medium,
-  ];
+        medium,
+      ];
 }
 
 /// ============================================================
@@ -508,36 +508,36 @@ class AppShadows {
 class AppBorders {
   /// 轻边框
   static BorderSide get light => const BorderSide(
-    color: AppColors.border,
-    width: 1,
-  );
-  
+        color: AppColors.border,
+        width: 1,
+      );
+
   /// 强边框
   static BorderSide get strong => const BorderSide(
-    color: AppColors.borderStrong,
-    width: 1,
-  );
-  
+        color: AppColors.borderStrong,
+        width: 1,
+      );
+
   /// 深边框
   static BorderSide get dark => const BorderSide(
-    color: AppColors.gray300,
-    width: 1,
-  );
-  
+        color: AppColors.gray300,
+        width: 1,
+      );
+
   /// 圆角矩形边框
   static BoxBorder get rounded => Border.all(
-    color: AppColors.border,
-    width: 1,
-  );
-  
+        color: AppColors.border,
+        width: 1,
+      );
+
   /// 底部分隔线
   static Border get bottomDivider => Border(
-    bottom: light,
-  );
-  
+        bottom: light,
+      );
+
   /// 全边框容器
   static BoxDecoration get outlined => BoxDecoration(
-    border: rounded,
-    borderRadius: BorderRadius.circular(AppRadius.lg),
-  );
+        border: rounded,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+      );
 }
