@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/supplement.dart';
 
 /// 数据库服务 - 单例模式
@@ -10,12 +12,14 @@ import '../models/supplement.dart';
 class DatabaseService {
   static final DatabaseService instance = DatabaseService._internal();
   static Database? _database;
-  
+  static const String _webStorageKey = 'suppcheck_web_database';
+
   // Web 平台内存存储
   final List<Map<String, dynamic>> _supplementsMemory = [];
   final List<Map<String, dynamic>> _intakeLogsMemory = [];
   final List<Map<String, dynamic>> _remindersMemory = [];
   int _nextId = 1;
+  bool _webStorageLoaded = false;
 
   DatabaseService._internal();
 
@@ -30,7 +34,7 @@ class DatabaseService {
 
   Future<void> initialize() async {
     if (_isWeb) {
-      // Web 平台：初始化内存数据
+      await _loadWebStorage();
       return;
     }
     await database;
@@ -105,12 +109,74 @@ class DatabaseService {
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     if (oldVersion < 2) {
       // 添加 category 字段
-      await db.execute('ALTER TABLE supplements ADD COLUMN category INTEGER DEFAULT 9');
+      await db.execute(
+          'ALTER TABLE supplements ADD COLUMN category INTEGER DEFAULT 9');
     }
   }
 
   // ==================== Web 平台内存存储辅助方法 ====================
-  
+
+  Future<void> _loadWebStorage() async {
+    if (_webStorageLoaded) return;
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(_webStorageKey);
+    if (raw == null || raw.isEmpty) {
+      _webStorageLoaded = true;
+      return;
+    }
+
+    final data = jsonDecode(raw) as Map<String, dynamic>;
+    _supplementsMemory
+      ..clear()
+      ..addAll(
+        (data['supplements'] as List<dynamic>? ?? [])
+            .map((item) => Map<String, dynamic>.from(item as Map)),
+      );
+    _intakeLogsMemory
+      ..clear()
+      ..addAll(
+        (data['intakeLogs'] as List<dynamic>? ?? [])
+            .map((item) => Map<String, dynamic>.from(item as Map)),
+      );
+    _remindersMemory
+      ..clear()
+      ..addAll(
+        (data['reminders'] as List<dynamic>? ?? [])
+            .map((item) => Map<String, dynamic>.from(item as Map)),
+      );
+    _nextId = data['nextId'] as int? ?? _calculateNextMemoryId();
+    _webStorageLoaded = true;
+  }
+
+  Future<void> _saveWebStorage() async {
+    if (!_isWeb) return;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      _webStorageKey,
+      jsonEncode({
+        'nextId': _nextId,
+        'supplements': _supplementsMemory,
+        'intakeLogs': _intakeLogsMemory,
+        'reminders': _remindersMemory,
+      }),
+    );
+  }
+
+  int _calculateNextMemoryId() {
+    var maxId = 0;
+    for (final collection in [
+      _supplementsMemory,
+      _intakeLogsMemory,
+      _remindersMemory,
+    ]) {
+      for (final item in collection) {
+        final id = item['id'] as int?;
+        if (id != null && id > maxId) maxId = id;
+      }
+    }
+    return maxId + 1;
+  }
+
   int _generateId() {
     return _nextId++;
   }
@@ -124,9 +190,10 @@ class DatabaseService {
       final map = supplement.toMap();
       map['id'] = id;
       _supplementsMemory.add(map);
+      await _saveWebStorage();
       return id;
     }
-    
+
     final db = await database;
     return await db.insert('supplements', supplement.toMap());
   }
@@ -139,7 +206,7 @@ class DatabaseService {
           .map((m) => Supplement.fromMap(m))
           .toList();
     }
-    
+
     final db = await database;
     final maps = await db.query(
       'supplements',
@@ -159,7 +226,7 @@ class DatabaseService {
       );
       return map.isEmpty ? null : Supplement.fromMap(map);
     }
-    
+
     final db = await database;
     final maps = await db.query(
       'supplements',
@@ -173,14 +240,16 @@ class DatabaseService {
   /// 更新补剂
   Future<int> updateSupplement(Supplement supplement) async {
     if (_isWeb) {
-      final index = _supplementsMemory.indexWhere((m) => m['id'] == supplement.id);
+      final index =
+          _supplementsMemory.indexWhere((m) => m['id'] == supplement.id);
       if (index >= 0) {
         _supplementsMemory[index] = supplement.toMap();
+        await _saveWebStorage();
         return 1;
       }
       return 0;
     }
-    
+
     final db = await database;
     return await db.update(
       'supplements',
@@ -196,11 +265,12 @@ class DatabaseService {
       final index = _supplementsMemory.indexWhere((m) => m['id'] == id);
       if (index >= 0) {
         _supplementsMemory[index]['isActive'] = 0;
+        await _saveWebStorage();
         return 1;
       }
       return 0;
     }
-    
+
     final db = await database;
     return await db.update(
       'supplements',
@@ -214,9 +284,10 @@ class DatabaseService {
   Future<int> hardDeleteSupplement(int id) async {
     if (_isWeb) {
       _supplementsMemory.removeWhere((m) => m['id'] == id);
+      await _saveWebStorage();
       return 1;
     }
-    
+
     final db = await database;
     return await db.delete(
       'supplements',
@@ -234,9 +305,10 @@ class DatabaseService {
       final map = log.toMap();
       map['id'] = id;
       _intakeLogsMemory.add(map);
+      await _saveWebStorage();
       return id;
     }
-    
+
     final db = await database;
     return await db.insert('intake_logs', log.toMap());
   }
@@ -244,14 +316,14 @@ class DatabaseService {
   /// 获取某日所有记录
   Future<List<IntakeLog>> getIntakeLogsByDate(DateTime date) async {
     final dateStr = date.toIso8601String().split('T')[0];
-    
+
     if (_isWeb) {
       return _intakeLogsMemory
           .where((m) => m['date'] == dateStr)
           .map((m) => IntakeLog.fromMap(m))
           .toList();
     }
-    
+
     final db = await database;
     final maps = await db.query(
       'intake_logs',
@@ -262,20 +334,53 @@ class DatabaseService {
     return maps.map((m) => IntakeLog.fromMap(m)).toList();
   }
 
+  /// 获取日期范围内所有记录
+  Future<List<IntakeLog>> getIntakeLogsByDateRange(
+    DateTime start,
+    DateTime end,
+  ) async {
+    final startStr = start.toIso8601String().split('T')[0];
+    final endStr = end.toIso8601String().split('T')[0];
+
+    if (_isWeb) {
+      final maps = _intakeLogsMemory.where((m) {
+        final date = m['date'] as String;
+        return date.compareTo(startStr) >= 0 && date.compareTo(endStr) <= 0;
+      }).toList()
+        ..sort((a, b) {
+          final dateCompare =
+              (b['date'] as String).compareTo(a['date'] as String);
+          if (dateCompare != 0) return dateCompare;
+          return (b['time'] as String).compareTo(a['time'] as String);
+        });
+      return maps.map((m) => IntakeLog.fromMap(m)).toList();
+    }
+
+    final db = await database;
+    final maps = await db.query(
+      'intake_logs',
+      where: 'date BETWEEN ? AND ?',
+      whereArgs: [startStr, endStr],
+      orderBy: 'date DESC, time DESC',
+    );
+    return maps.map((m) => IntakeLog.fromMap(m)).toList();
+  }
+
   /// 获取某日某补剂的记录
   Future<List<IntakeLog>> getIntakeLogsByDateAndSupplement(
     DateTime date,
     int supplementId,
   ) async {
     final dateStr = date.toIso8601String().split('T')[0];
-    
+
     if (_isWeb) {
       return _intakeLogsMemory
-          .where((m) => m['date'] == dateStr && m['supplementId'] == supplementId)
+          .where(
+              (m) => m['date'] == dateStr && m['supplementId'] == supplementId)
           .map((m) => IntakeLog.fromMap(m))
           .toList();
     }
-    
+
     final db = await database;
     final maps = await db.query(
       'intake_logs',
@@ -288,19 +393,19 @@ class DatabaseService {
   /// 获取某补剂某日已服用数量
   Future<int> getTodayTakenCount(int supplementId, DateTime date) async {
     final dateStr = date.toIso8601String().split('T')[0];
-    
+
     if (_isWeb) {
-      final logs = _intakeLogsMemory.where((m) => 
-        m['supplementId'] == supplementId && 
-        m['date'] == dateStr && 
-        m['status'] == 0);
+      final logs = _intakeLogsMemory.where((m) =>
+          m['supplementId'] == supplementId &&
+          m['date'] == dateStr &&
+          m['status'] == 0);
       var total = 0;
       for (final log in logs) {
         total += (log['quantity'] as int? ?? 0);
       }
       return total;
     }
-    
+
     final db = await database;
     final result = await db.rawQuery('''
       SELECT SUM(quantity) as total 
@@ -314,9 +419,10 @@ class DatabaseService {
   Future<int> deleteIntakeLog(int id) async {
     if (_isWeb) {
       _intakeLogsMemory.removeWhere((m) => m['id'] == id);
+      await _saveWebStorage();
       return 1;
     }
-    
+
     final db = await database;
     return await db.delete(
       'intake_logs',
@@ -330,7 +436,7 @@ class DatabaseService {
     if (_isWeb) {
       return _intakeLogsMemory.map((m) => IntakeLog.fromMap(m)).toList();
     }
-    
+
     final db = await database;
     final maps = await db.query(
       'intake_logs',
@@ -348,24 +454,24 @@ class DatabaseService {
   ) async {
     final startStr = start.toIso8601String().split('T')[0];
     final endStr = end.toIso8601String().split('T')[0];
-    
+
     if (_isWeb) {
       final filtered = _intakeLogsMemory.where((m) {
         final date = m['date'] as String;
         return date.compareTo(startStr) >= 0 && date.compareTo(endStr) <= 0;
       });
-      
+
       final totalRecords = filtered.length;
       final takenCount = filtered.where((m) => m['status'] == 0).length;
       final missedCount = filtered.where((m) => m['status'] == 1).length;
-      
+
       return {
         'totalRecords': totalRecords,
         'takenCount': takenCount,
         'missedCount': missedCount,
       };
     }
-    
+
     final db = await database;
     final result = await db.rawQuery('''
       SELECT 
@@ -383,11 +489,11 @@ class DatabaseService {
   Future<double> getSupplementAdherenceRate(int supplementId) async {
     if (_isWeb) {
       // Web 简化计算
-      final logs = _intakeLogsMemory.where((m) => 
-        m['supplementId'] == supplementId && m['status'] == 0);
+      final logs = _intakeLogsMemory
+          .where((m) => m['supplementId'] == supplementId && m['status'] == 0);
       return logs.isEmpty ? 0.0 : 0.85; // 模拟数据
     }
-    
+
     final db = await database;
     final end = DateTime.now();
     final start = end.subtract(const Duration(days: 30));
@@ -414,9 +520,10 @@ class DatabaseService {
       final map = reminder.toMap();
       map['id'] = id;
       _remindersMemory.add(map);
+      await _saveWebStorage();
       return id;
     }
-    
+
     final db = await database;
     return await db.insert('reminders', reminder.toMap());
   }
@@ -429,12 +536,46 @@ class DatabaseService {
           .map((m) => Reminder.fromMap(m))
           .toList();
     }
-    
+
     final db = await database;
     final maps = await db.query(
       'reminders',
       where: 'supplementId = ?',
       whereArgs: [supplementId],
+    );
+    return maps.map((m) => Reminder.fromMap(m)).toList();
+  }
+
+  /// 获取单个提醒
+  Future<Reminder?> getReminder(int id) async {
+    if (_isWeb) {
+      final map = _remindersMemory.firstWhere(
+        (m) => m['id'] == id,
+        orElse: () => {},
+      );
+      return map.isEmpty ? null : Reminder.fromMap(map);
+    }
+
+    final db = await database;
+    final maps = await db.query(
+      'reminders',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    if (maps.isEmpty) return null;
+    return Reminder.fromMap(maps.first);
+  }
+
+  /// 获取所有提醒
+  Future<List<Reminder>> getAllReminders() async {
+    if (_isWeb) {
+      return _remindersMemory.map((m) => Reminder.fromMap(m)).toList();
+    }
+
+    final db = await database;
+    final maps = await db.query(
+      'reminders',
+      orderBy: 'time ASC',
     );
     return maps.map((m) => Reminder.fromMap(m)).toList();
   }
@@ -447,7 +588,7 @@ class DatabaseService {
           .map((m) => Reminder.fromMap(m))
           .toList();
     }
-    
+
     final db = await database;
     final maps = await db.query(
       'reminders',
@@ -463,11 +604,12 @@ class DatabaseService {
       final index = _remindersMemory.indexWhere((m) => m['id'] == reminder.id);
       if (index >= 0) {
         _remindersMemory[index] = reminder.toMap();
+        await _saveWebStorage();
         return 1;
       }
       return 0;
     }
-    
+
     final db = await database;
     return await db.update(
       'reminders',
@@ -481,9 +623,10 @@ class DatabaseService {
   Future<int> deleteReminder(int id) async {
     if (_isWeb) {
       _remindersMemory.removeWhere((m) => m['id'] == id);
+      await _saveWebStorage();
       return 1;
     }
-    
+
     final db = await database;
     return await db.delete(
       'reminders',
@@ -505,9 +648,9 @@ class DatabaseService {
         'reminders': _remindersMemory,
       };
     }
-    
+
     final db = await database;
-    
+
     final supplements = await db.query('supplements');
     final intakeLogs = await db.query('intake_logs');
     final reminders = await db.query('reminders');
@@ -522,13 +665,15 @@ class DatabaseService {
   }
 
   /// 从 JSON 导入数据（合并模式）
-  Future<void> importData(Map<String, dynamic> data, {bool merge = true}) async {
+  Future<void> importData(Map<String, dynamic> data,
+      {bool merge = true}) async {
     if (!merge) {
       // 清空现有数据
       if (_isWeb) {
         _supplementsMemory.clear();
         _intakeLogsMemory.clear();
         _remindersMemory.clear();
+        _nextId = 1;
       } else {
         final db = await database;
         await db.delete('reminders');
@@ -562,6 +707,17 @@ class DatabaseService {
         await addIntakeLog(log.copyWith(id: null));
       }
     }
+
+    // 导入提醒
+    final reminders = data['reminders'] as List<dynamic>?;
+    if (reminders != null) {
+      for (final map in reminders) {
+        final reminder = Reminder.fromMap(Map<String, dynamic>.from(map));
+        await createReminder(reminder.copyWith(id: null));
+      }
+    }
+
+    await _saveWebStorage();
   }
 
   /// 根据名称获取补剂
@@ -573,7 +729,7 @@ class DatabaseService {
       );
       return map.isEmpty ? null : Supplement.fromMap(map);
     }
-    
+
     final db = await database;
     final maps = await db.query(
       'supplements',

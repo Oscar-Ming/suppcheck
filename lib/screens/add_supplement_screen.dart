@@ -6,7 +6,6 @@ import '../models/supplement.dart';
 import '../providers/supplement_provider.dart';
 import '../utils/constants.dart';
 import '../utils/animations.dart';
-import '../widgets/supplement_card.dart';
 
 /// 添加/编辑补剂页面
 class AddSupplementScreen extends StatefulWidget {
@@ -361,7 +360,8 @@ class _AddSupplementScreenState extends State<AddSupplementScreen>
               Text('分类', style: AppTextStyles.body),
               AnimatedContainer(
                 duration: AnimationDurations.fast,
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: _category.displayColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(AppRadius.round),
@@ -411,7 +411,8 @@ class _AddSupplementScreenState extends State<AddSupplementScreen>
                     cat.displayName,
                     style: AppTextStyles.callout.copyWith(
                       color: isSelected ? Colors.white : cat.displayColor,
-                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                      fontWeight:
+                          isSelected ? FontWeight.w600 : FontWeight.w500,
                     ),
                   ),
                 ),
@@ -455,19 +456,17 @@ class _AddSupplementScreenState extends State<AddSupplementScreen>
                     vertical: 8,
                   ),
                   decoration: BoxDecoration(
-                    color: isSelected
-                        ? AppColors.primary
-                        : AppColors.gray50,
+                    color: isSelected ? AppColors.primary : AppColors.gray50,
                     borderRadius: BorderRadius.circular(AppRadius.round),
-                    border: isSelected
-                        ? null
-                        : Border.all(color: AppColors.border),
+                    border:
+                        isSelected ? null : Border.all(color: AppColors.border),
                   ),
                   child: Text(
                     time,
                     style: AppTextStyles.callout.copyWith(
                       color: isSelected ? Colors.white : AppColors.textPrimary,
-                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                      fontWeight:
+                          isSelected ? FontWeight.w600 : FontWeight.w500,
                     ),
                   ),
                 ),
@@ -486,7 +485,7 @@ class _AddSupplementScreenState extends State<AddSupplementScreen>
     Function(String) onChanged,
   ) {
     var selectedValue = currentValue;
-    
+
     showCupertinoModalPopup(
       context: context,
       builder: (context) => BottomSheetAnimation(
@@ -494,7 +493,8 @@ class _AddSupplementScreenState extends State<AddSupplementScreen>
           height: 320,
           decoration: const BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xxl)),
+            borderRadius:
+                BorderRadius.vertical(top: Radius.circular(AppRadius.xxl)),
           ),
           child: SafeArea(
             child: Column(
@@ -510,7 +510,7 @@ class _AddSupplementScreenState extends State<AddSupplementScreen>
                   ),
                 ),
                 const SizedBox(height: 16),
-                
+
                 // 顶部栏
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -540,9 +540,9 @@ class _AddSupplementScreenState extends State<AddSupplementScreen>
                     ],
                   ),
                 ),
-                
+
                 const Divider(),
-                
+
                 // Picker
                 Expanded(
                   child: CupertinoPicker(
@@ -584,14 +584,13 @@ class _AddSupplementScreenState extends State<AddSupplementScreen>
         stock: _stockController.text.isEmpty
             ? null
             : int.parse(_stockController.text),
-        notes: _notesController.text.isEmpty
-            ? null
-            : _notesController.text.trim(),
+        notes:
+            _notesController.text.isEmpty ? null : _notesController.text.trim(),
         category: _category,
       );
 
       final provider = context.read<SupplementProvider>();
-      
+
       if (isEditing) {
         provider.updateSupplement(supplement);
       } else {

@@ -15,7 +15,7 @@ class StatisticsScreen extends StatefulWidget {
   State<StatisticsScreen> createState() => _StatisticsScreenState();
 }
 
-class _StatisticsScreenState extends State<StatisticsScreen> 
+class _StatisticsScreenState extends State<StatisticsScreen>
     with SingleTickerProviderStateMixin {
   int _touchedIndex = -1;
   late AnimationController _controller;
@@ -49,7 +49,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
         child: Consumer<SupplementProvider>(
           builder: (context, provider, child) {
             final supplements = provider.supplements;
-            
+
             return CustomScrollView(
               physics: const BouncingScrollPhysics(),
               slivers: [
@@ -100,7 +100,9 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                                   '连续打卡',
                                   '$days 天',
                                   CupertinoIcons.flame_fill,
-                                  days >= 7 ? const Color(0xFFFF6B6B) : AppColors.success,
+                                  days >= 7
+                                      ? const Color(0xFFFF6B6B)
+                                      : AppColors.success,
                                   1,
                                 );
                               },
@@ -224,8 +226,9 @@ class _StatisticsScreenState extends State<StatisticsScreen>
       animation: _animation,
       builder: (context, child) {
         final delay = index * 0.1;
-        final progress = (_animation.value - delay).clamp(0, 1 - delay) / (1 - delay);
-        
+        final progress =
+            (_animation.value - delay).clamp(0, 1 - delay) / (1 - delay);
+
         return Transform.translate(
           offset: Offset(0, (1 - progress) * 20),
           child: Opacity(
@@ -295,7 +298,8 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                     _touchedIndex = -1;
                     return;
                   }
-                  _touchedIndex = pieTouchResponse.touchedSection!.touchedSectionIndex;
+                  _touchedIndex =
+                      pieTouchResponse.touchedSection!.touchedSectionIndex;
                 });
               },
             ),
@@ -321,7 +325,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     return List.generate(supplements.length > 6 ? 6 : supplements.length, (i) {
       final isTouched = i == _touchedIndex;
       final radius = isTouched ? 70.0 : 60.0;
-      
+
       return PieChartSectionData(
         color: colors[i % colors.length],
         value: 100 / supplements.length,
@@ -364,115 +368,133 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     final weekDays = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
     final now = DateTime.now();
     final weekStart = now.subtract(Duration(days: now.weekday - 1)); // 本周一
-    
+    final weekEnd = weekStart.add(const Duration(days: 6));
     final provider = context.read<SupplementProvider>();
-    
-    // 计算每天的服用次数
-    final values = List.generate(7, (index) {
-      final day = weekStart.add(Duration(days: index));
-      final logs = provider.getLogsForDate(day);
-      return logs.where((log) => log.status == IntakeStatus.taken).length;
-    });
-    
-    final hasData = values.any((v) => v > 0);
-    final maxValue = values.reduce((a, b) => a > b ? a : b);
-    final maxY = maxValue < 5 ? 5.0 : (maxValue * 1.2);
 
-    if (!hasData) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              CupertinoIcons.chart_bar,
-              size: 48,
-              color: AppColors.textTertiary,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              '暂无数据',
-              style: AppTextStyles.subhead.copyWith(
-                color: AppColors.textSecondary,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              '开始服用补剂后将显示趋势',
-              style: AppTextStyles.footnote.copyWith(
-                color: AppColors.textTertiary,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
+    return FutureBuilder<List<IntakeLog>>(
+      future: provider.getLogsByDateRange(weekStart, weekEnd),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CupertinoActivityIndicator());
+        }
 
-    return BarChart(
-      BarChartData(
-        alignment: BarChartAlignment.spaceAround,
-        maxY: maxY,
-        barTouchData: BarTouchData(enabled: false),
-        titlesData: FlTitlesData(
-          show: true,
-          bottomTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              getTitlesWidget: (value, meta) {
-                final index = value.toInt();
-                if (index < 0 || index >= weekDays.length) return const SizedBox();
-                return Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Text(
-                    weekDays[index],
-                    style: AppTextStyles.footnote,
+        final logs = snapshot.data ?? [];
+        final values = List.generate(7, (index) {
+          final day = weekStart.add(Duration(days: index));
+          final dayStr = day.toIso8601String().split('T')[0];
+          return logs
+              .where(
+                (log) =>
+                    log.status == IntakeStatus.taken &&
+                    log.date.toIso8601String().split('T')[0] == dayStr,
+              )
+              .length;
+        });
+
+        final hasData = values.any((v) => v > 0);
+        final maxValue = values.reduce((a, b) => a > b ? a : b);
+        final maxY = maxValue < 5 ? 5.0 : (maxValue * 1.2);
+
+        if (!hasData) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  CupertinoIcons.chart_bar,
+                  size: 48,
+                  color: AppColors.textTertiary,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  '暂无数据',
+                  style: AppTextStyles.subhead.copyWith(
+                    color: AppColors.textSecondary,
                   ),
-                );
-              },
-            ),
-          ),
-          leftTitles: const AxisTitles(
-            sideTitles: SideTitles(showTitles: false),
-          ),
-          topTitles: const AxisTitles(
-            sideTitles: SideTitles(showTitles: false),
-          ),
-          rightTitles: const AxisTitles(
-            sideTitles: SideTitles(showTitles: false),
-          ),
-        ),
-        borderData: FlBorderData(show: false),
-        gridData: const FlGridData(show: false),
-        barGroups: List.generate(
-          weekDays.length,
-          (index) => BarChartGroupData(
-            x: index,
-            barRods: [
-              BarChartRodData(
-                toY: values[index].toDouble(),
-                color: AppColors.primary,
-                width: 24,
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(AppRadius.sm),
                 ),
-                gradient: const LinearGradient(
-                  colors: [
-                    AppColors.primary,
-                    AppColors.gray800,
-                  ],
-                  begin: Alignment.bottomCenter,
-                  end: Alignment.topCenter,
+                const SizedBox(height: 4),
+                Text(
+                  '开始服用补剂后将显示趋势',
+                  style: AppTextStyles.footnote.copyWith(
+                    color: AppColors.textTertiary,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        return BarChart(
+          BarChartData(
+            alignment: BarChartAlignment.spaceAround,
+            maxY: maxY,
+            barTouchData: BarTouchData(enabled: false),
+            titlesData: FlTitlesData(
+              show: true,
+              bottomTitles: AxisTitles(
+                sideTitles: SideTitles(
+                  showTitles: true,
+                  getTitlesWidget: (value, meta) {
+                    final index = value.toInt();
+                    if (index < 0 || index >= weekDays.length)
+                      return const SizedBox();
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Text(
+                        weekDays[index],
+                        style: AppTextStyles.footnote,
+                      ),
+                    );
+                  },
                 ),
               ),
-            ],
+              leftTitles: const AxisTitles(
+                sideTitles: SideTitles(showTitles: false),
+              ),
+              topTitles: const AxisTitles(
+                sideTitles: SideTitles(showTitles: false),
+              ),
+              rightTitles: const AxisTitles(
+                sideTitles: SideTitles(showTitles: false),
+              ),
+            ),
+            borderData: FlBorderData(show: false),
+            gridData: const FlGridData(show: false),
+            barGroups: List.generate(
+              weekDays.length,
+              (index) => BarChartGroupData(
+                x: index,
+                barRods: [
+                  BarChartRodData(
+                    toY: values[index].toDouble(),
+                    color: AppColors.primary,
+                    width: 24,
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(AppRadius.sm),
+                    ),
+                    gradient: const LinearGradient(
+                      colors: [
+                        AppColors.primary,
+                        AppColors.gray800,
+                      ],
+                      begin: Alignment.bottomCenter,
+                      end: Alignment.topCenter,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
   Widget _buildSupplementStatItem(supplement, int index) {
     return FutureBuilder<double>(
-      future: context.read<SupplementProvider>().getSupplementAdherence(supplement.id!),
+      future: context
+          .read<SupplementProvider>()
+          .getSupplementAdherence(supplement.id!),
       builder: (context, snapshot) {
         final adherence = snapshot.data ?? 0.0;
         final color = adherence >= 0.8
@@ -480,7 +502,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
             : adherence >= 0.5
                 ? AppColors.warning
                 : AppColors.danger;
-        
+
         return Container(
           margin: const EdgeInsets.only(bottom: 12),
           padding: const EdgeInsets.all(16),

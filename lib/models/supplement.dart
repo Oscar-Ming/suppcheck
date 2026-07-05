@@ -3,16 +3,16 @@ import 'package:flutter/material.dart';
 
 /// 补剂分类
 enum SupplementCategory {
-  vitamin,      // 维生素
-  mineral,      // 矿物质
-  protein,      // 蛋白质
-  aminoAcid,    // 氨基酸
-  herb,         // 草本/植物
-  probiotic,    // 益生菌
-  omega,        // 鱼油/Omega
-  joint,        // 关节保健
-  preworkout,   // 运动前补剂
-  other,        // 其他
+  vitamin, // 维生素
+  mineral, // 矿物质
+  protein, // 蛋白质
+  aminoAcid, // 氨基酸
+  herb, // 草本/植物
+  probiotic, // 益生菌
+  omega, // 鱼油/Omega
+  joint, // 关节保健
+  preworkout, // 运动前补剂
+  other, // 其他
 }
 
 extension SupplementCategoryExtension on SupplementCategory {
@@ -63,6 +63,33 @@ extension SupplementCategoryExtension on SupplementCategory {
         return const Color(0xFFAF52DE); // 深紫
       case SupplementCategory.other:
         return const Color(0xFF8E8E93); // 灰色
+    }
+  }
+
+  String get displayName => label;
+
+  Color get displayColor {
+    switch (this) {
+      case SupplementCategory.vitamin:
+        return const Color(0xFFE85D04);
+      case SupplementCategory.mineral:
+        return const Color(0xFF0077B6);
+      case SupplementCategory.protein:
+        return const Color(0xFF2D6A4F);
+      case SupplementCategory.aminoAcid:
+        return const Color(0xFF5A189A);
+      case SupplementCategory.herb:
+        return const Color(0xFF52796F);
+      case SupplementCategory.probiotic:
+        return const Color(0xFFC9184A);
+      case SupplementCategory.omega:
+        return const Color(0xFFFF006E);
+      case SupplementCategory.joint:
+        return const Color(0xFFFB8500);
+      case SupplementCategory.preworkout:
+        return const Color(0xFF7209B7);
+      case SupplementCategory.other:
+        return const Color(0xFF6B7280);
     }
   }
 }
@@ -127,8 +154,8 @@ class Supplement {
       notes: map['notes'] as String?,
       createdAt: DateTime.parse(map['createdAt'] as String),
       isActive: map['isActive'] == 1,
-      category: map['category'] != null 
-          ? SupplementCategory.values[map['category'] as int] 
+      category: map['category'] != null
+          ? SupplementCategory.values[map['category'] as int]
           : SupplementCategory.other,
     );
   }
@@ -236,16 +263,16 @@ class IntakeLog {
 
 /// 服用状态
 enum IntakeStatus {
-  taken,    // 已服用
-  missed,   // 漏服
-  skipped,  // 跳过
+  taken, // 已服用
+  missed, // 漏服
+  skipped, // 跳过
 }
 
 /// 提醒设置模型
 class Reminder {
   final int? id;
   final int supplementId;
-  final String time;  // HH:mm 格式
+  final String time; // HH:mm 格式
   final bool isEnabled;
   final String? sound;
 
@@ -274,6 +301,22 @@ class Reminder {
       time: map['time'] as String,
       isEnabled: map['isEnabled'] == 1,
       sound: map['sound'] as String?,
+    );
+  }
+
+  Reminder copyWith({
+    int? id,
+    int? supplementId,
+    String? time,
+    bool? isEnabled,
+    String? sound,
+  }) {
+    return Reminder(
+      id: id ?? this.id,
+      supplementId: supplementId ?? this.supplementId,
+      time: time ?? this.time,
+      isEnabled: isEnabled ?? this.isEnabled,
+      sound: sound ?? this.sound,
     );
   }
 }

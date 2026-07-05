@@ -24,6 +24,19 @@ class SupplementProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
 
+  int _notificationIdForReminder(int reminderId) => 500000 + reminderId;
+
+  int _legacyNotificationId(int supplementId, int index) =>
+      supplementId * 100 + index;
+
+  Future<void> _cancelLegacyReminders(int supplementId,
+      {int count = 10}) async {
+    for (var i = 0; i < count; i++) {
+      await _notifications
+          .cancelReminder(_legacyNotificationId(supplementId, i));
+    }
+  }
+
   /// 获取今日记录
   List<IntakeLog> getTodayLogs(int supplementId) {
     return _todayLogs[supplementId] ?? [];
@@ -40,7 +53,7 @@ class SupplementProvider extends ChangeNotifier {
   /// 检查今日是否还能服用
   ({bool canTake, String? message}) canTakeSupplement(Supplement supplement) {
     final takenCount = getTodayTakenCount(supplement.id!);
-    
+
     if (takenCount >= supplement.maxDaily) {
       return (
         canTake: false,
@@ -95,25 +108,25 @@ class SupplementProvider extends ChangeNotifier {
     _setLoading(true);
     try {
       final id = await _db.createSupplement(supplement);
-      
+
       // 为每个服用时间创建提醒
       for (final time in supplement.timing) {
         final reminder = Reminder(
           supplementId: id,
           time: _parseTime(time),
         );
-        await _db.createReminder(reminder);
-        
+        final reminderId = await _db.createReminder(reminder);
+
         // 设置本地通知
         await _notifications.scheduleDailyReminder(
-          id: id * 100 + supplement.timing.indexOf(time),
+          id: _notificationIdForReminder(reminderId),
           title: '服用提醒',
           body: '该服用 ${supplement.name} 了',
           time: reminder.time,
           payload: 'supplement_$id',
         );
       }
-      
+
       await loadSupplements();
     } catch (e) {
       _error = '添加补剂失败: $e';
@@ -126,10 +139,10 @@ class SupplementProvider extends ChangeNotifier {
     _setLoading(true);
     try {
       await _db.updateSupplement(supplement);
-      
+
       // 更新提醒
       await _updateReminders(supplement);
-      
+
       await loadSupplements();
     } catch (e) {
       _error = '更新补剂失败: $e';
@@ -141,12 +154,18 @@ class SupplementProvider extends ChangeNotifier {
   Future<void> deleteSupplement(int id) async {
     _setLoading(true);
     try {
+      final reminders = await _db.getRemindersBySupplement(id);
+      for (final reminder in reminders) {
+        if (reminder.id != null) {
+          await _notifications.cancelReminder(
+            _notificationIdForReminder(reminder.id!),
+          );
+        }
+      }
+      await _cancelLegacyReminders(id);
+
       await _db.deleteSupplement(id);
-      
-      // 取消相关提醒
-      await _notifications.cancelReminder(id * 100);
-      await _notifications.cancelReminder(id * 100 + 1);
-      
+
       await loadSupplements();
     } catch (e) {
       _error = '删除补剂失败: $e';
@@ -184,7 +203,7 @@ class SupplementProvider extends ChangeNotifier {
       status: log.status,
       notes: log.notes,
     );
-    
+
     // 更新库存
     if (supplement.stock != null) {
       final newStock = supplement.stock! - quantity;
@@ -202,7 +221,7 @@ class SupplementProvider extends ChangeNotifier {
   Future<void> undoIntake(Supplement supplement, IntakeLog log) async {
     if (log.id != null) {
       await _db.deleteIntakeLog(log.id!);
-      
+
       // 恢复库存
       if (supplement.stock != null) {
         final newStock = supplement.stock! + log.quantity;
@@ -210,7 +229,7 @@ class SupplementProvider extends ChangeNotifier {
           supplement.copyWith(stock: newStock),
         );
       }
-      
+
       await _loadTodayLogs();
       notifyListeners();
     }
@@ -245,10 +264,12 @@ class SupplementProvider extends ChangeNotifier {
     int consecutiveDays = 0;
     final today = DateTime.now();
     final todayStr = today.toIso8601String().split('T')[0];
-    
+
     // 如果今天有记录，包含今天
-    DateTime checkDate = datesWithRecords.contains(todayStr) ? today : today.subtract(const Duration(days: 1));
-    
+    DateTime checkDate = datesWithRecords.contains(todayStr)
+        ? today
+        : today.subtract(const Duration(days: 1));
+
     while (true) {
       final dateStr = checkDate.toIso8601String().split('T')[0];
       if (datesWithRecords.contains(dateStr)) {
@@ -308,6 +329,17 @@ class SupplementProvider extends ChangeNotifier {
     return [];
   }
 
+  /// 从数据库获取指定日期的记录
+  Future<List<IntakeLog>> getLogsForDateAsync(DateTime date) async {
+    return await _db.getIntakeLogsByDate(date);
+  }
+
+  /// 从数据库获取日期范围内的记录
+  Future<List<IntakeLog>> getLogsByDateRange(
+      DateTime start, DateTime end) async {
+    return await _db.getIntakeLogsByDateRange(start, end);
+  }
+
   /// 获取指定日期某补剂的服用数量
   int getTakenCountForDate(int supplementId, DateTime date) {
     if (isSameDay(date, _selectedDate)) {
@@ -318,15 +350,16 @@ class SupplementProvider extends ChangeNotifier {
 
   /// 更新提醒设置
   Future<void> _updateReminders(Supplement supplement) async {
-    // 取消旧提醒
-    for (int i = 0; i < 5; i++) {
-      await _notifications.cancelReminder(supplement.id! * 100 + i);
-    }
+    await _cancelLegacyReminders(supplement.id!);
 
     // 删除旧提醒数据
     final oldReminders = await _db.getRemindersBySupplement(supplement.id!);
     for (final r in oldReminders) {
-      await _db.deleteReminder(r.id!);
+      final reminderId = r.id;
+      if (reminderId == null) continue;
+      await _notifications
+          .cancelReminder(_notificationIdForReminder(reminderId));
+      await _db.deleteReminder(reminderId);
     }
 
     // 创建新提醒
@@ -335,10 +368,10 @@ class SupplementProvider extends ChangeNotifier {
         supplementId: supplement.id!,
         time: _parseTime(time),
       );
-      await _db.createReminder(reminder);
+      final reminderId = await _db.createReminder(reminder);
 
       await _notifications.scheduleDailyReminder(
-        id: supplement.id! * 100 + supplement.timing.indexOf(time),
+        id: _notificationIdForReminder(reminderId),
         title: '服用提醒',
         body: '该服用 ${supplement.name} 了',
         time: reminder.time,
@@ -380,7 +413,8 @@ class SupplementProvider extends ChangeNotifier {
   }
 
   /// 获取统计数据
-  Future<Map<String, dynamic>> getStatistics(DateTime start, DateTime end) async {
+  Future<Map<String, dynamic>> getStatistics(
+      DateTime start, DateTime end) async {
     return await _db.getStatistics(start, end);
   }
 
@@ -395,16 +429,17 @@ class SupplementProvider extends ChangeNotifier {
   }
 
   /// 导入数据
-  Future<void> importData(Map<String, dynamic> data, {bool merge = true}) async {
+  Future<void> importData(Map<String, dynamic> data,
+      {bool merge = true}) async {
     await _db.importData(data, merge: merge);
     await loadSupplements();
   }
 
   /// 获取所有提醒设置
   Future<List<Map<String, dynamic>>> getAllReminders() async {
-    final reminders = await _db.getAllEnabledReminders();
+    final reminders = await _db.getAllReminders();
     final List<Map<String, dynamic>> result = [];
-    
+
     for (final reminder in reminders) {
       final supplement = await _db.getSupplement(reminder.supplementId);
       if (supplement != null) {
@@ -414,13 +449,44 @@ class SupplementProvider extends ChangeNotifier {
         });
       }
     }
-    
+
     return result;
   }
 
   /// 切换提醒开关
   Future<void> toggleReminder(int reminderId, bool isEnabled) async {
-    // 这里需要添加更新提醒的方法到数据库服务
-    await loadSupplements();
+    final reminder = await _db.getReminder(reminderId);
+    if (reminder == null) return;
+
+    final updated = reminder.copyWith(isEnabled: isEnabled);
+    await _db.updateReminder(updated);
+
+    final supplement = await _db.getSupplement(reminder.supplementId);
+    if (supplement != null) {
+      final notificationId = _notificationIdForReminder(reminderId);
+      final supplementReminders =
+          await _db.getRemindersBySupplement(supplement.id!);
+      final reminderIndex =
+          supplementReminders.indexWhere((item) => item.id == reminderId);
+      if (reminderIndex >= 0) {
+        await _notifications.cancelReminder(
+          _legacyNotificationId(supplement.id!, reminderIndex),
+        );
+      }
+
+      if (isEnabled) {
+        await _notifications.scheduleDailyReminder(
+          id: notificationId,
+          title: '服用提醒',
+          body: '该服用 ${supplement.name} 了',
+          time: reminder.time,
+          payload: 'supplement_${supplement.id}',
+        );
+      } else {
+        await _notifications.cancelReminder(notificationId);
+      }
+    }
+
+    notifyListeners();
   }
 }

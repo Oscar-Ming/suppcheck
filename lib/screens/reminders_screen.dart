@@ -15,7 +15,7 @@ class RemindersScreen extends StatefulWidget {
   State<RemindersScreen> createState() => _RemindersScreenState();
 }
 
-class _RemindersScreenState extends State<RemindersScreen> 
+class _RemindersScreenState extends State<RemindersScreen>
     with SingleTickerProviderStateMixin {
   bool _isLoading = true;
   List<Map<String, dynamic>> _reminders = [];
@@ -39,25 +39,16 @@ class _RemindersScreenState extends State<RemindersScreen>
 
   Future<void> _loadReminders() async {
     setState(() => _isLoading = true);
-    
-    final supplements = context.read<SupplementProvider>().supplements;
-    final List<Map<String, dynamic>> reminders = [];
 
-    for (final supplement in supplements) {
-      for (final timing in supplement.timing) {
-        reminders.add({
-          'supplement': supplement,
-          'timing': timing,
-          'isEnabled': true,
-        });
-      }
-    }
+    final reminders =
+        await context.read<SupplementProvider>().getAllReminders();
 
+    if (!mounted) return;
     setState(() {
       _reminders = reminders;
       _isLoading = false;
     });
-    
+
     _controller.forward();
   }
 
@@ -92,12 +83,17 @@ class _RemindersScreenState extends State<RemindersScreen>
                         delay: Duration(milliseconds: 100 + index * 50),
                         child: _buildReminderCard(
                           supplement: item['supplement'] as Supplement,
-                          timing: item['timing'] as String,
-                          isEnabled: item['isEnabled'] as bool,
-                          onToggle: (value) {
+                          reminder: item['reminder'] as Reminder,
+                          onToggle: (value) async {
+                            final reminder = item['reminder'] as Reminder;
                             setState(() {
-                              item['isEnabled'] = value;
+                              item['reminder'] = reminder.copyWith(
+                                isEnabled: value,
+                              );
                             });
+                            await context
+                                .read<SupplementProvider>()
+                                .toggleReminder(reminder.id!, value);
                           },
                         ),
                       );
@@ -146,11 +142,10 @@ class _RemindersScreenState extends State<RemindersScreen>
 
   Widget _buildReminderCard({
     required Supplement supplement,
-    required String timing,
-    required bool isEnabled,
+    required Reminder reminder,
     required ValueChanged<bool> onToggle,
   }) {
-    final timeStr = _parseTimeDisplay(timing);
+    final isEnabled = reminder.isEnabled;
 
     return AnimatedContainer(
       duration: AnimationDurations.fast,
@@ -160,9 +155,8 @@ class _RemindersScreenState extends State<RemindersScreen>
         color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(AppRadius.xl),
         border: Border.all(
-          color: isEnabled 
-              ? AppColors.primary.withOpacity(0.2)
-              : AppColors.border,
+          color:
+              isEnabled ? AppColors.primary.withOpacity(0.2) : AppColors.border,
           width: isEnabled ? 1.5 : 1,
         ),
       ),
@@ -187,7 +181,9 @@ class _RemindersScreenState extends State<RemindersScreen>
                 return ScaleTransition(scale: animation, child: child);
               },
               child: Icon(
-                isEnabled ? CupertinoIcons.bell_fill : CupertinoIcons.bell_slash,
+                isEnabled
+                    ? CupertinoIcons.bell_fill
+                    : CupertinoIcons.bell_slash,
                 key: ValueKey(isEnabled),
                 color: isEnabled ? Colors.white : AppColors.textTertiary,
                 size: 22,
@@ -202,7 +198,9 @@ class _RemindersScreenState extends State<RemindersScreen>
                 Text(
                   supplement.name,
                   style: AppTextStyles.headline.copyWith(
-                    color: isEnabled ? AppColors.textPrimary : AppColors.textSecondary,
+                    color: isEnabled
+                        ? AppColors.textPrimary
+                        : AppColors.textSecondary,
                   ),
                 ),
                 const SizedBox(height: 6),
@@ -220,9 +218,11 @@ class _RemindersScreenState extends State<RemindersScreen>
                         borderRadius: BorderRadius.circular(AppRadius.sm),
                       ),
                       child: Text(
-                        timing,
+                        reminder.time,
                         style: AppTextStyles.caption.copyWith(
-                          color: isEnabled ? AppColors.primary : AppColors.textTertiary,
+                          color: isEnabled
+                              ? AppColors.primary
+                              : AppColors.textTertiary,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -238,7 +238,7 @@ class _RemindersScreenState extends State<RemindersScreen>
                         borderRadius: BorderRadius.circular(AppRadius.sm),
                       ),
                       child: Text(
-                        timeStr,
+                        isEnabled ? '已开启' : '已关闭',
                         style: AppTextStyles.caption.copyWith(
                           color: AppColors.textSecondary,
                           fontWeight: FontWeight.w500,
@@ -260,26 +260,6 @@ class _RemindersScreenState extends State<RemindersScreen>
     );
   }
 
-  String _parseTimeDisplay(String timing) {
-    final timeMap = {
-      '早上': '08:00',
-      '早餐后': '08:30',
-      '午餐前': '11:30',
-      '午餐后': '12:30',
-      '晚餐前': '17:30',
-      '晚餐后': '18:30',
-      '睡前': '21:30',
-    };
-
-    for (final entry in timeMap.entries) {
-      if (timing.contains(entry.key)) {
-        return entry.value;
-      }
-    }
-
-    return '08:00';
-  }
-
   Future<void> _testNotification(BuildContext context) async {
     await NotificationService.instance.showNotification(
       id: 9999,
@@ -295,7 +275,8 @@ class _RemindersScreenState extends State<RemindersScreen>
             padding: const EdgeInsets.all(24),
             decoration: const BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xxl)),
+              borderRadius:
+                  BorderRadius.vertical(top: Radius.circular(AppRadius.xxl)),
             ),
             child: SafeArea(
               child: Column(

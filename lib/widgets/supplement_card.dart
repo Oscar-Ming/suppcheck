@@ -3,59 +3,6 @@ import 'package:flutter/material.dart';
 import '../models/supplement.dart';
 import '../utils/constants.dart';
 
-/// 补剂分类显示扩展
-extension CategoryDisplay on SupplementCategory {
-  String get displayName {
-    switch (this) {
-      case SupplementCategory.vitamin:
-        return '维生素';
-      case SupplementCategory.mineral:
-        return '矿物质';
-      case SupplementCategory.protein:
-        return '蛋白质';
-      case SupplementCategory.aminoAcid:
-        return '氨基酸';
-      case SupplementCategory.herb:
-        return '草本';
-      case SupplementCategory.probiotic:
-        return '益生菌';
-      case SupplementCategory.omega:
-        return '鱼油';
-      case SupplementCategory.joint:
-        return '关节';
-      case SupplementCategory.preworkout:
-        return '运动';
-      case SupplementCategory.other:
-        return '其他';
-    }
-  }
-
-  Color get displayColor {
-    switch (this) {
-      case SupplementCategory.vitamin:
-        return const Color(0xFFE85D04);
-      case SupplementCategory.mineral:
-        return const Color(0xFF0077B6);
-      case SupplementCategory.protein:
-        return const Color(0xFF2D6A4F);
-      case SupplementCategory.aminoAcid:
-        return const Color(0xFF5A189A);
-      case SupplementCategory.herb:
-        return const Color(0xFF52796F);
-      case SupplementCategory.probiotic:
-        return const Color(0xFFC9184A);
-      case SupplementCategory.omega:
-        return const Color(0xFFFF006E);
-      case SupplementCategory.joint:
-        return const Color(0xFFFB8500);
-      case SupplementCategory.preworkout:
-        return const Color(0xFF7209B7);
-      case SupplementCategory.other:
-        return const Color(0xFF6B7280);
-    }
-  }
-}
-
 /// 补剂卡片组件 - 带动画效果
 class SupplementCard extends StatefulWidget {
   final Supplement supplement;
